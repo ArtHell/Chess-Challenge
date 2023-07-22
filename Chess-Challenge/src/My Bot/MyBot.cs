@@ -34,13 +34,13 @@ public class MyBot : IChessBot
 
     private Move FindTheBestMove(Board board)
     {
-        float maxEval = -90000f;
+        float maxEval = -100000f;
         Move bestMove = Move.NullMove;
 
         foreach (var move in board.GetLegalMoves())
         {
             board.MakeMove(move);
-            var evaluation = -Negamax(board, 3);
+            var evaluation = -Negamax(board, 2, -90000, 90000);
             board.UndoMove(move);
             if (evaluation > maxEval)
             {
@@ -52,21 +52,24 @@ public class MyBot : IChessBot
         return bestMove;
     }
 
-    private float Negamax(Board board, int depth)
+    private float Negamax(Board board, int depth, float alpha, float beta)
     {
         var legalMoves = board.GetLegalMoves();
         if (depth == 0 || legalMoves.Length == 0)
             return EvaluatePosition(board);
 
-        var evaluation = -90000f;
         foreach (var move in legalMoves)
         {
             board.MakeMove(move);
-            var newEvaluation = -Negamax(board, depth - 1);
-            if (newEvaluation > evaluation)
-                evaluation = newEvaluation;
+            var newEvaluation = -Negamax(board, depth - 1, -beta, -alpha);
             board.UndoMove(move);
+            if (newEvaluation >= beta)
+                return beta;
+            if(newEvaluation > alpha)
+            {
+                alpha = newEvaluation;
+            }
         }
-        return evaluation;
+        return alpha;
     }
 }
