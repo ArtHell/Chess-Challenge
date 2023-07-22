@@ -29,7 +29,7 @@ public class MyBot : IChessBot
         System.Console.WriteLine(transpositionTable.Count);
         System.Console.WriteLine("Counter");
         System.Console.WriteLine(foundCounter);
-        return FindTheBestMove(board);
+        return FindTheBestMove(board, timer);
     }
 
     private float EvaluatePosition(Board board)
@@ -56,22 +56,27 @@ public class MyBot : IChessBot
         return board.IsWhiteToMove ? evaluation : -evaluation;
     }
 
-    private Move FindTheBestMove(Board board)
+    private Move FindTheBestMove(Board board, Timer timer)
     {
         float maxEval = -100000f;
         Move bestMove = Move.NullMove;
-
-        foreach (var move in board.GetLegalMoves())
+        for(var depth = 1; timer.MillisecondsElapsedThisTurn < 1000; depth++)
         {
-            board.MakeMove(move);
-            var evaluation = -Negamax(board, 4, -90000, 90000);
-            board.UndoMove(move);
-            if (evaluation > maxEval)
+            System.Console.WriteLine(timer.MillisecondsElapsedThisTurn);
+            foreach (var move in board.GetLegalMoves())
             {
-                maxEval = evaluation;
-                bestMove = move;
+                board.MakeMove(move);
+
+                var evaluation = -Negamax(board, depth, -90000, 90000);
+                board.UndoMove(move);
+                if (evaluation > maxEval)
+                {
+                    maxEval = evaluation;
+                    bestMove = move;
+                }
             }
         }
+        
 
         return bestMove;
     }
