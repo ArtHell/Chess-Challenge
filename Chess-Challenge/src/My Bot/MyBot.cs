@@ -25,10 +25,6 @@ public class MyBot : IChessBot
 
     public Move Think(Board board, Timer timer)
     {
-        System.Console.WriteLine("Table size");
-        System.Console.WriteLine(transpositionTable.Count);
-        System.Console.WriteLine("Counter");
-        System.Console.WriteLine(foundCounter);
         return FindTheBestMove(board, timer);
     }
 
@@ -39,18 +35,12 @@ public class MyBot : IChessBot
             return -90000;
         }
 
-
         float[] weights = { 100, 305, 333, 563, 950 };
         var allPiecesCounts = board.GetAllPieceLists().Select(x => x.Count).ToList();
         var evaluation = 0f;
         for (int i = 0; i < 5; i++)
         {
             evaluation += (allPiecesCounts[i] - allPiecesCounts[i + 6]) * weights[i];
-        }
-
-        if (board.IsDraw())
-        {
-            evaluation /= 10;
         }
 
         return board.IsWhiteToMove ? evaluation : -evaluation;
@@ -62,11 +52,9 @@ public class MyBot : IChessBot
         Move bestMove = Move.NullMove;
         for(var depth = 1; timer.MillisecondsElapsedThisTurn < 100 && depth < 5; depth++)
         {
-            System.Console.WriteLine(timer.MillisecondsElapsedThisTurn);
             foreach (var move in board.GetLegalMoves())
             {
                 board.MakeMove(move);
-
                 var evaluation = -Negamax(board, depth, -90000, 90000);
                 board.UndoMove(move);
                 if (evaluation > maxEval)
@@ -110,27 +98,26 @@ public class MyBot : IChessBot
             board.MakeMove(move);
             value = Math.Max(value, -Negamax(board, depth - 1, -beta, -alpha));
             board.UndoMove(move);
+            var entry = new TranspositionTableEntry
+            {
+                Evaluation = value,
+                Depth = depth,
+                EntryType = EntryType.Exact
+            };
+
+            if (value <= alpha)
+            {
+                entry.EntryType = EntryType.UpperBound;
+            }
+            else if (value >= beta)
+            {
+                entry.EntryType = EntryType.LowerBound;
+            }
+            transpositionTable[board.ZobristKey] = entry;
             alpha = Math.Max(alpha, value);
             if (alpha >= beta)
                 break;
         }
-
-        var entry = new TranspositionTableEntry
-        {
-            Evaluation = value,
-            Depth = depth,
-            EntryType = EntryType.Exact
-        };
-
-        if(value <= alpha)
-        {
-            entry.EntryType = EntryType.UpperBound;
-        } else if(value >= beta)
-        {
-            entry.EntryType = EntryType.LowerBound;
-        }
-
-        transpositionTable[board.ZobristKey] = entry;
 
         return value;
     }
@@ -138,6 +125,7 @@ public class MyBot : IChessBot
     private float Quiesce(Board board, float alpha, float beta)
     {
         var standPat = EvaluatePosition(board);
+
         if (standPat >= beta)
             return beta;
         if (alpha < standPat)
