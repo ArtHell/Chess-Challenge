@@ -8,11 +8,11 @@ public class MyBot : IChessBot
         return FindTheBestMove(board);
     }
 
-    private int EvaluatePosition(Board board)
+    private float EvaluatePosition(Board board)
     {
         if (board.IsInCheckmate())
         {
-            return -10000;
+            return -90000;
         }
 
         if (board.IsDraw())
@@ -20,10 +20,10 @@ public class MyBot : IChessBot
             return 0;
         }
 
-        int[] weights = { 10, 30, 30, 50, 90, 900 };
+        float[] weights = { 100, 305, 333, 563, 950 };
         var allPiecesCounts = board.GetAllPieceLists().Select(x => x.Count).ToList();
-        var evaluation = 0;
-        for (int i = 0; i < 6; i++)
+        var evaluation = 0f;
+        for (int i = 0; i < 5; i++)
         {
             evaluation += (allPiecesCounts[i] - allPiecesCounts[i + 6]) * weights[i];
         }
@@ -33,7 +33,7 @@ public class MyBot : IChessBot
 
     private Move FindTheBestMove(Board board)
     {
-        int maxEval = -10000;
+        float maxEval = -90000f;
         Move bestMove = Move.NullMove;
 
         foreach (var move in board.GetLegalMoves())
@@ -51,13 +51,13 @@ public class MyBot : IChessBot
         return bestMove;
     }
 
-    private int Minimax(Board board, int depth, bool isMaximize)
+    private float Minimax(Board board, int depth, bool isMaximize)
     {
         var legalMoves = board.GetLegalMoves();
         if (depth == 0 || legalMoves.Length == 0)
             return EvaluatePosition(board);
 
-        var evaluation = isMaximize ? -10000 : 10000;
+        var evaluation = isMaximize ? -90000f : 90000f;
         foreach (var move in legalMoves)
         {
             board.MakeMove(move);
