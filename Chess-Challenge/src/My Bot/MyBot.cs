@@ -12,7 +12,7 @@ public class MyBot : IChessBot
     {
         if (board.IsInCheckmate())
         {
-            return board.IsWhiteToMove ? -10000 : 10000;
+            return -10000;
         }
 
         if (board.IsDraw())
