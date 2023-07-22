@@ -40,7 +40,7 @@ public class MyBot : IChessBot
         foreach (var move in board.GetLegalMoves())
         {
             board.MakeMove(move);
-            var evaluation = -Negamax(board, 2, -90000, 90000);
+            var evaluation = -Negamax(board, 3, -90000, 90000);
             board.UndoMove(move);
             if (evaluation > maxEval)
             {
@@ -56,7 +56,7 @@ public class MyBot : IChessBot
     {
         var legalMoves = board.GetLegalMoves();
         if (depth == 0 || legalMoves.Length == 0)
-            return EvaluatePosition(board);
+            return Quiesce(board, alpha, beta);
 
         foreach (var move in legalMoves)
         {
@@ -68,6 +68,31 @@ public class MyBot : IChessBot
             if(newEvaluation > alpha)
             {
                 alpha = newEvaluation;
+            }
+        }
+        return alpha;
+    }
+
+    private float Quiesce(Board board, float alpha, float beta)
+    {
+        var standPat = EvaluatePosition(board);
+        if (standPat >= beta)
+            return beta;
+        if (alpha < standPat)
+            alpha = standPat;
+
+        foreach (var move in board.GetLegalMoves())
+        {
+            if (move.IsCapture)
+            {
+                board.MakeMove(move);
+                var score = -Quiesce(board, -beta, -alpha);
+                board.UndoMove(move);
+
+                if (score >= beta)
+                    return beta;
+                if (score > alpha)
+                    alpha = score;
             }
         }
         return alpha;
