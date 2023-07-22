@@ -1,5 +1,6 @@
 ﻿using ChessChallenge.API;
 using System.Linq;
+using static System.Formats.Asn1.AsnWriter;
 
 public class MyBot : IChessBot
 {
@@ -15,17 +16,17 @@ public class MyBot : IChessBot
             return -90000;
         }
 
-        if (board.IsDraw())
-        {
-            return 0;
-        }
-
         float[] weights = { 100, 305, 333, 563, 950 };
         var allPiecesCounts = board.GetAllPieceLists().Select(x => x.Count).ToList();
         var evaluation = 0f;
         for (int i = 0; i < 5; i++)
         {
             evaluation += (allPiecesCounts[i] - allPiecesCounts[i + 6]) * weights[i];
+        }
+
+        if (board.IsDraw())
+        {
+            evaluation /= 10;
         }
 
         return board.IsWhiteToMove ? evaluation : -evaluation;
@@ -39,7 +40,7 @@ public class MyBot : IChessBot
         foreach (var move in board.GetLegalMoves())
         {
             board.MakeMove(move);
-            var evaluation = Minimax(board, 3, false);
+            var evaluation = -Negamax(board, 3);
             board.UndoMove(move);
             if (evaluation > maxEval)
             {
@@ -51,18 +52,19 @@ public class MyBot : IChessBot
         return bestMove;
     }
 
-    private float Minimax(Board board, int depth, bool isMaximize)
+    private float Negamax(Board board, int depth)
     {
         var legalMoves = board.GetLegalMoves();
         if (depth == 0 || legalMoves.Length == 0)
             return EvaluatePosition(board);
 
-        var evaluation = isMaximize ? -90000f : 90000f;
+        var evaluation = -90000f;
         foreach (var move in legalMoves)
         {
             board.MakeMove(move);
-            var newEvaluation = Minimax(board, depth - 1, !isMaximize);
-            evaluation = isMaximize ? System.Math.Max(evaluation, newEvaluation) : System.Math.Min(evaluation, newEvaluation);
+            var newEvaluation = -Negamax(board, depth - 1);
+            if (newEvaluation > evaluation)
+                evaluation = newEvaluation;
             board.UndoMove(move);
         }
         return evaluation;

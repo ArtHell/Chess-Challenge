@@ -40,7 +40,7 @@ namespace ChessChallenge.Application
 
             if (syntaxNode.IsToken && !tokensToIgnore.Contains(kind))
             {
-                //Console.WriteLine(kind + "  " + syntaxNode.ToString());
+                //System.Console.WriteLine(kind + "  " + syntaxNode.ToString());
 
                 // String literals count for as many chars as are in the string
                 if (kind is SyntaxKind.StringLiteralToken or SyntaxKind.InterpolatedStringTextToken)
