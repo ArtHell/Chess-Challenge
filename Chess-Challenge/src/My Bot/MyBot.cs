@@ -60,7 +60,7 @@ public class MyBot : IChessBot
     {
         float maxEval = -100000f;
         Move bestMove = Move.NullMove;
-        for(var depth = 1; timer.MillisecondsElapsedThisTurn < 1000; depth++)
+        for(var depth = 1; timer.MillisecondsElapsedThisTurn < 100 && depth < 5; depth++)
         {
             System.Console.WriteLine(timer.MillisecondsElapsedThisTurn);
             foreach (var move in board.GetLegalMoves())
